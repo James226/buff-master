@@ -15,7 +15,7 @@ function DisplayBar.new(xmlDoc, spell, id, maxTime, block)
     self.isSet = false
     self.MaxTime = maxTime
 
-    self.Frame = Apollo.LoadForm(xmlDoc, "BarTemplate", block.buffFrame, self)
+    self.Frame = Apollo.LoadForm(xmlDoc, "BarTemplate", block.buffFrame:FindChild("ItemList"), self)
     self.Frame:FindChild("Text"):SetText(spell:GetName())
     self.Frame:FindChild("Icon"):SetSprite(spell:GetIcon())
     self.Frame:FindChild("RemainingOverlay"):SetMax(maxTime)
@@ -55,6 +55,20 @@ function DisplayBar:SetSpell(spell)
     else
         self.Frame:FindChild("Timer"):SetText("")
     end
+end
+
+function DisplayBar:SetHeight(height)
+    local left, top, right, bottom = self.Frame:GetAnchorOffsets()
+    self.Frame:SetAnchorOffsets(left, top, right, top + height)
+
+    local icon = self.Frame:FindChild("Icon")
+    local iconHeight = icon:GetHeight()
+    local left, top, right, bottom = icon:GetAnchorOffsets()
+    icon:SetAnchorOffsets(left, top, left + iconHeight, bottom)
+
+    local text = self.Frame:FindChild("Text")
+    local left, top, right, bottom = text:GetAnchorOffsets()
+    text:SetAnchorOffsets(iconHeight + 9, top, right, bottom)
 end
 
 function DisplayBar:SetBGColor(color)

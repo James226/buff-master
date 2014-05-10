@@ -14,12 +14,17 @@ function DisplayBlock.new(xmlDoc)
     self.xmlDoc = xmlDoc
     self.buffs = { }
     self.buffFrame = Apollo.LoadForm(self.xmlDoc, "BuffBar", nil, self)
-
+    self.itemList = self.buffFrame:FindChild("ItemList")
+    
     self.bgColor = CColor.new(1,1,1,0.8)
     self.barColor = CColor.new(1,0,0,0.5)
     self.isEnabled = true
     self.Exclusions = { }
     self.anchorFromTop = true
+    self.barSize = {
+    	Width = 300,
+    	Height = 25
+	}
 
     return self
 end
@@ -37,8 +42,12 @@ function DisplayBlock:Load(saveData)
 		self:SetEnabled(saveData.isEnabled)
 	end
 
+	if saveData.barSize ~= nil then
+		self.barSize = saveData.barSize
+	end
+
 	if saveData.Position ~= nil then
-		self.buffFrame:SetAnchorOffsets(saveData.Position[1], saveData.Position[2], saveData.Position[1] + self.buffFrame:GetWidth(), saveData.Position[2] + self.buffFrame:GetHeight())
+		self.buffFrame:SetAnchorOffsets(saveData.Position[1], saveData.Position[2], saveData.Position[1] + self.barSize.Width, saveData.Position[2] + self.buffFrame:GetHeight())
 	end
 
 	if saveData.Exclusions ~= nil then
@@ -59,7 +68,8 @@ function DisplayBlock:GetSaveData()
 		isEnabled = self.isEnabled,
 		Position = { left, top },
 		Exclusions = self.Exclusions,
-		anchorFromTop = self.anchorFromTop
+		anchorFromTop = self.anchorFromTop,
+		barSize = self.barSize
 	}
 	return saveData
 end
@@ -78,7 +88,7 @@ function DisplayBlock:SetEnabled(isEnabled)
 		for _, buff in pairs(self.buffs) do
 			self.buffs[buff.Id] = nil
 			buff.Frame:Destroy()
-			self.buffFrame:ArrangeChildrenVert()
+			self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 		end
 	end
 end
@@ -89,9 +99,23 @@ end
 
 function DisplayBlock:SetMovable(isMovable)
 	self.buffFrame:FindChild("MoveAnchor"):Show(isMovable)
-	self.buffFrame:FindChild("ResizeButton"):Show(isMovable)
 	self.buffFrame:SetStyle("Picture", isMovable)
 	self.buffFrame:SetStyle("Moveable", isMovable)
+end
+
+function DisplayBlock:SetBarWidth(width)
+	local left, top, right, bottom = self.buffFrame:GetAnchorOffsets()
+	right = left + width
+	self.buffFrame:SetAnchorOffsets(left, top, right, bottom)
+	self.barSize.Width = width
+end
+
+function DisplayBlock:SetBarHeight(height)
+	self.barSize.Height = height
+	for _, buff in pairs(self.buffs) do
+		buff:SetHeight(height)
+	end
+	self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 end
 
 function DisplayBlock:IsExcluded(name)
@@ -115,7 +139,7 @@ function DisplayBlock:ProcessBuffs(buffs)
 					buffBar = self:CreateBar(buff.splEffect, buff.idBuff, buff.fTimeRemaining)
 					self.buffs[buff.idBuff] = buffBar
 
-					self.buffFrame:ArrangeChildrenVert(self:GetAnchorPoint())
+					self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 				end
 
 				buffBar.isSet = self.currentPass
@@ -127,7 +151,7 @@ function DisplayBlock:ProcessBuffs(buffs)
 			if buff.isSet ~= self.currentPass then
 				self.buffs[buff.Id] = nil
 				buff.Frame:Destroy()
-				self.buffFrame:ArrangeChildrenVert(self:GetAnchorPoint())
+				self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 			end
 		end
 	end
@@ -156,7 +180,7 @@ function DisplayBlock:ProcessSpells(spells)
 
 								self.buffs[spell:GetId()] = buffBar
 
-								self.buffFrame:ArrangeChildrenVert(self:GetAnchorPoint())
+								self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 							end
 							buffBar:SetSpell(spell)
 						end
@@ -165,7 +189,7 @@ function DisplayBlock:ProcessSpells(spells)
 						if buffBar ~= nil then
 							self.buffs[spell:GetId()] = nil
 							buffBar.Frame:Destroy()
-							self.buffFrame:ArrangeChildrenVert(self:GetAnchorPoint())
+							self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 						end
 					end
 				end
@@ -178,6 +202,7 @@ function DisplayBlock:CreateBar(spell, id, maxTime)
 	local bar = BuffMasterLibs.DisplayBar.new(self.xmlDoc, spell, id, maxTime, self)
 	bar:SetBGColor(self.bgColor)
 	bar:SetBarColor(self.barColor)
+	bar:SetHeight(self.barSize.Height)
 	return bar
 end
 
@@ -211,7 +236,7 @@ end
 
 function DisplayBlock:AnchorFromTop(anchorTop)
 	self.anchorFromTop = anchorTop
-	self.buffFrame:ArrangeChildrenVert(self:GetAnchorPoint())
+	self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 end
 
 function DisplayBlock:GetAnchorPoint()

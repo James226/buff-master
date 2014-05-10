@@ -75,40 +75,40 @@ function BuffMaster:OnDocLoaded()
 end
 
 function BuffMaster:InitializeConfigForm()
-	local buffOptions = self.wndMain:FindChild("BuffOptions")
-	buffOptions:FindChild("Enabled"):SetCheck(self.buffs:IsEnabled())
-	buffOptions:FindChild("BackgroundColor"):FindChild("Text"):SetTextColor(self.buffs.bgColor)
-	buffOptions:FindChild("BarColor"):FindChild("Text"):SetTextColor(self.buffs.barColor)
-	buffOptions:FindChild("StartFromTop"):SetCheck(self.buffs.anchorFromTop)
-	local excludedOptions = buffOptions:FindChild("ExcludedOptions")
-	excludedOptions:DestroyChildren()
-	for _, exclusion in pairs(self.buffs.Exclusions) do
-		local filter = Apollo.LoadForm(self.xmlDoc, "ExcludedOption", excludedOptions, self)
-		filter:SetText(exclusion)
-	end
-	excludedOptions:ArrangeChildrenVert()
+	local groupOptionsList = self.wndMain:FindChild("GroupOptionsList")
+	groupOptionsList:DestroyChildren()
 
-	local debuffOptions = self.wndMain:FindChild("DebuffOptions")
-	debuffOptions:FindChild("Enabled"):SetCheck(self.debuffs:IsEnabled())
-	debuffOptions:FindChild("BackgroundColor"):FindChild("Text"):SetTextColor(self.debuffs.bgColor)
-	debuffOptions:FindChild("BarColor"):FindChild("Text"):SetTextColor(self.debuffs.barColor)
-	debuffOptions:FindChild("StartFromTop"):SetCheck(self.debuffs.anchorFromTop)
-	local excludedOptions = debuffOptions:FindChild("ExcludedOptions")
-	excludedOptions:DestroyChildren()
-	for _, exclusion in pairs(self.debuffs.Exclusions) do
-		local filter = Apollo.LoadForm(self.xmlDoc, "ExcludedOption", excludedOptions, self)
-		filter:SetText(exclusion)
-	end
-	excludedOptions:ArrangeChildrenVert()
+	local buffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
+	buffOptions:SetData(self.buffs)
+	buffOptions:FindChild("OptionsLabel"):SetText("Buff Bar Options")
+	self:InitializeGroup(buffOptions, self.buffs)
+	
 
-	local cooldownOptions = self.wndMain:FindChild("CooldownOptions")
-	cooldownOptions:FindChild("Enabled"):SetCheck(self.cooldowns:IsEnabled())
-	cooldownOptions:FindChild("BackgroundColor"):FindChild("Text"):SetTextColor(self.cooldowns.bgColor)
-	cooldownOptions:FindChild("BarColor"):FindChild("Text"):SetTextColor(self.cooldowns.barColor)
-	cooldownOptions:FindChild("StartFromTop"):SetCheck(self.cooldowns.anchorFromTop)
-	local excludedOptions = cooldownOptions:FindChild("ExcludedOptions")
+	local debuffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
+	debuffOptions:SetData(self.debuffs)
+	debuffOptions:FindChild("OptionsLabel"):SetText("Debuff Bar Options")
+	self:InitializeGroup(debuffOptions, self.debuffs)
+
+	local cooldownOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
+	cooldownOptions:SetData(self.cooldowns)
+	cooldownOptions:FindChild("OptionsLabel"):SetText("Cooldown Bar Options")
+	self:InitializeGroup(cooldownOptions, self.cooldowns)
+
+	groupOptionsList:ArrangeChildrenVert()
+end
+
+function BuffMaster:InitializeGroup(groupFrame, group)
+	groupFrame:FindChild("Enabled"):SetCheck(group:IsEnabled())
+	groupFrame:FindChild("BackgroundColor"):FindChild("Text"):SetTextColor(group.bgColor)
+	groupFrame:FindChild("BarColor"):FindChild("Text"):SetTextColor(group.barColor)
+	groupFrame:FindChild("StartFromTop"):SetCheck(group.anchorFromTop)
+	groupFrame:FindChild("BarWidth"):SetValue(group.barSize.Width)
+	groupFrame:FindChild("BarWidthValue"):SetText(string.format("%.f", group.barSize.Width))
+	groupFrame:FindChild("BarHeight"):SetValue(group.barSize.Height)
+	groupFrame:FindChild("BarHeightValue"):SetText(string.format("%.f", group.barSize.Height))
+	local excludedOptions = groupFrame:FindChild("ExcludedOptions")
 	excludedOptions:DestroyChildren()
-	for _, exclusion in pairs(self.cooldowns.Exclusions) do
+	for _, exclusion in pairs(group.Exclusions) do
 		local filter = Apollo.LoadForm(self.xmlDoc, "ExcludedOption", excludedOptions, self)
 		filter:SetText(exclusion)
 	end
@@ -185,67 +185,60 @@ function BuffMaster:OnOK()
 	self.wndMain:Close()
 end
 
+function BuffMaster:OnBuffEnabledChanged( wndHandler, wndControl, eMouseButton )
+	local group = wndHandler:GetParent():GetData()
+	group:SetEnabled(wndHandler:IsChecked())
+end
+
+---------------------------------------------------------------------------------------------------
+-- Appearance Functions
+---------------------------------------------------------------------------------------------------
+
+function BuffMaster:OnBarWidthChanged( wndHandler, wndControl, fNewValue, fOldValue )
+	local group = wndHandler:GetParent():GetData()
+	group:SetBarWidth(fNewValue)
+	wndHandler:GetParent():FindChild("BarWidthValue"):SetText(string.format("%.f", fNewValue))
+end
+
+function BuffMaster:OnBarWidthValueChanged( wndHandler, wndControl, strText )
+	local group = wndHandler:GetParent():GetData()
+	local value = tonumber(strText)
+	wndHandler:SetText(tostring(value))
+	wndHandler:GetParent():FindChild("BarWidth"):SetValue(value)
+	group:SetBarWidth(value)
+end
+
+function BuffMaster:OnBarHeightChanged( wndHandler, wndControl, fNewValue, fOldValue )
+	local group = wndHandler:GetParent():GetData()
+	group:SetBarHeight(fNewValue)
+	wndHandler:GetParent():FindChild("BarHeightValue"):SetText(string.format("%.f", fNewValue))
+end
+
+function BuffMaster:OnBarHeightValueChanged( wndHandler, wndControl, strText )
+	local group = wndHandler:GetParent():GetData()
+	local value = tonumber(strText)
+	wndHandler:SetText(tostring(value))
+	wndHandler:GetParent():FindChild("BarHeight"):SetValue(value)
+	group:SetBarHeight(value)
+end
+
 function BuffMaster:EditBuffBackgroundColor( wndHandler, wndControl, eMouseButton )
-	local color = self.buffs.bgColor
+	local group = wndHandler:GetParent():GetData()
+	local color = group.bgColor
 	self.colorPicker:OpenColorPicker(color, function()
 		test = wndHandler
 		wndHandler:FindChild("Text"):SetTextColor(color)
-		self.buffs:SetBGColor(color)
+		group:SetBGColor(color)
 	end)
 end
 
 function BuffMaster:EditBuffBarColor( wndHandler, wndControl, eMouseButton )
-	local color = self.buffs.barColor
+	local group = wndHandler:GetParent():GetData()
+	local color = group.barColor
 	self.colorPicker:OpenColorPicker(color, function()
 		wndHandler:FindChild("Text"):SetTextColor(color)
-		self.buffs:SetBarColor(color)
+		group:SetBarColor(color)
 	end)
-end
-
-function BuffMaster:EditDebuffBackgroundColor( wndHandler, wndControl, eMouseButton )
-	local color = self.debuffs.bgColor
-	self.colorPicker:OpenColorPicker(color, function()
-		test = wndHandler
-		wndHandler:FindChild("Text"):SetTextColor(color)
-		self.debuffs:SetBGColor(color)
-	end)
-end
-
-function BuffMaster:EditDebuffBarColor( wndHandler, wndControl, eMouseButton )
-	local color = self.debuffs.barColor
-	self.colorPicker:OpenColorPicker(color, function()
-		wndHandler:FindChild("Text"):SetTextColor(color)
-		self.debuffs:SetBarColor(color)
-	end)
-end
-
-function BuffMaster:EditCooldownBackgroundColor( wndHandler, wndControl, eMouseButton )
-	local color = self.cooldowns.bgColor
-	self.colorPicker:OpenColorPicker(color, function()
-		wndHandler:FindChild("Text"):SetTextColor(color)
-		self.cooldowns:SetBGColor(color)
-	end)
-end
-
-function BuffMaster:EditCooldownBarColor( wndHandler, wndControl, eMouseButton )
-	local color = self.cooldowns.barColor
-	self.colorPicker:OpenColorPicker(color, function()
-		wndHandler:FindChild("Text"):SetTextColor(color)
-		self.cooldowns:SetBarColor(color)
-	end)
-end
-
-
-function BuffMaster:OnBuffEnabledChanged( wndHandler, wndControl, eMouseButton )
-	self.buffs:SetEnabled(wndHandler:IsChecked())
-end
-
-function BuffMaster:OnDebuffEnabledChanged( wndHandler, wndControl, eMouseButton )
-	self.debuffs:SetEnabled(wndHandler:IsChecked())
-end
-
-function BuffMaster:OnCooldownEnabledChanged( wndHandler, wndControl, eMouseButton )
-	self.cooldowns:SetEnabled(wndHandler:IsChecked())
 end
 
 function BuffMaster:OnMoveBars( wndHandler, wndControl, eMouseButton )
@@ -272,59 +265,21 @@ function BuffMaster:OnExcludedChanged( wndHandler, wndControl, strText )
 end
 
 function BuffMaster:OnAddExclusion( wndHandler, wndControl, eMouseButton )
+	local group = wndHandler:GetParent():GetData()
 	local excludedOptions = wndHandler:GetParent():FindChild("ExcludedOptions")
 	local filter = Apollo.LoadForm(self.xmlDoc, "ExcludedOption", excludedOptions, self)
 	local exclusionName = wndHandler:GetParent():FindChild("Excluded"):GetText()
 	filter:SetText(exclusionName)
-	self.buffs:AddExclusion(exclusionName)
+	group:AddExclusion(exclusionName)
 	excludedOptions:ArrangeChildrenVert()
 end
 
 function BuffMaster:OnExclusionRemove( wndHandler, wndControl, eMouseButton )
+	local group = wndHandler:GetParent():GetData()
 	local excludedOptions = wndHandler:GetParent():FindChild("ExcludedOptions")
 	for _, excludedOption in pairs(excludedOptions:GetChildren()) do
 		if excludedOption:IsChecked() then
-			self.buffs:RemoveExclusion(excludedOption:GetText())
-			excludedOption:Destroy()
-		end
-	end
-	excludedOptions:ArrangeChildrenVert()
-end
-
-function BuffMaster:OnAddDebuffExclusion( wndHandler, wndControl, eMouseButton )
-	local excludedOptions = wndHandler:GetParent():FindChild("ExcludedOptions")
-	local filter = Apollo.LoadForm(self.xmlDoc, "ExcludedOption", excludedOptions, self)
-	local exclusionName = wndHandler:GetParent():FindChild("Excluded"):GetText()
-	filter:SetText(exclusionName)
-	self.debuffs:AddExclusion(exclusionName)
-	excludedOptions:ArrangeChildrenVert()
-end
-
-function BuffMaster:OnRemoveDebuffExclusion( wndHandler, wndControl, eMouseButton )
-	local excludedOptions = wndHandler:GetParent():FindChild("ExcludedOptions")
-	for _, excludedOption in pairs(excludedOptions:GetChildren()) do
-		if excludedOption:IsChecked() then
-			self.debuffs:RemoveExclusion(excludedOption:GetText())
-			excludedOption:Destroy()
-		end
-	end
-	excludedOptions:ArrangeChildrenVert()
-end
-
-function BuffMaster:OnAddCooldownExclusion( wndHandler, wndControl, eMouseButton )
-	local excludedOptions = wndHandler:GetParent():FindChild("ExcludedOptions")
-	local filter = Apollo.LoadForm(self.xmlDoc, "ExcludedOption", excludedOptions, self)
-	local exclusionName = wndHandler:GetParent():FindChild("Excluded"):GetText()
-	filter:SetText(exclusionName)
-	self.cooldowns:AddExclusion(exclusionName)
-	excludedOptions:ArrangeChildrenVert()
-end
-
-function BuffMaster:OnRemoveCooldownExclusion( wndHandler, wndControl, eMouseButton )
-	local excludedOptions = wndHandler:GetParent():FindChild("ExcludedOptions")
-	for _, excludedOption in pairs(excludedOptions:GetChildren()) do
-		if excludedOption:IsChecked() then
-			self.cooldowns:RemoveExclusion(excludedOption:GetText())
+			group:RemoveExclusion(excludedOption:GetText())
 			excludedOption:Destroy()
 		end
 	end
@@ -332,15 +287,8 @@ function BuffMaster:OnRemoveCooldownExclusion( wndHandler, wndControl, eMouseBut
 end
 
 function BuffMaster:OnBuffStartFromTopChanged( wndHandler, wndControl, eMouseButton )
-	self.buffs:AnchorFromTop(wndHandler:IsChecked())
-end
-
-function BuffMaster:OnDebuffStartFromTopChanged( wndHandler, wndControl, eMouseButton )
-	self.debuffs:AnchorFromTop(wndHandler:IsChecked())
-end
-
-function BuffMaster:OnCooldownStartFromTopChanged( wndHandler, wndControl, eMouseButton )
-	self.cooldowns:AnchorFromTop(wndHandler:IsChecked())
+	local group = wndHandler:GetParent():GetData()
+	group:AnchorFromTop(wndHandler:IsChecked())
 end
 
 -----------------------------------------------------------------------------------------------

@@ -15,7 +15,7 @@ function DisplayBlock.new(xmlDoc)
     self.buffs = { }
     self.buffFrame = Apollo.LoadForm(self.xmlDoc, "BuffBar", nil, self)
     self.itemList = self.buffFrame:FindChild("ItemList")
-    
+
     self.bgColor = CColor.new(1,1,1,0.8)
     self.barColor = CColor.new(1,0,0,0.5)
     self.isEnabled = true
@@ -55,7 +55,7 @@ function DisplayBlock:Load(saveData)
 	end
 
 	if saveData.anchorFromTop ~= nil then
-		self.anchorFromTop = saveData.anchorFromTop
+		self:AnchorFromTop(saveData.anchorFromTop)
 	end
 end
 
@@ -157,6 +157,14 @@ function DisplayBlock:ProcessBuffs(buffs)
 	end
 end
 
+function DisplayBlock:ClearAll()
+	for _, buff in pairs(self.buffs) do
+		self.buffs[buff.Id] = nil
+		buff.Frame:Destroy()
+	end
+	self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
+end
+
 function DisplayBlock:GetAbilitiesList()
 	if self.abilitiesList == nil then
 		self.abilitiesList = AbilityBook.GetAbilitiesList()
@@ -236,6 +244,12 @@ end
 
 function DisplayBlock:AnchorFromTop(anchorTop)
 	self.anchorFromTop = anchorTop
+	local left, top, right, bottom = self.buffFrame:GetAnchorOffsets()
+	if anchorTop then
+		self.buffFrame:SetAnchorOffsets(left, 0, right, self.buffFrame:GetHeight())
+	else
+		self.buffFrame:SetAnchorOffsets(left, -self.buffFrame:GetHeight(), right, 0)
+	end
 	self.itemList:ArrangeChildrenVert(self:GetAnchorPoint())
 end
 

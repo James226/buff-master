@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<Addon Author="Caedo" APIVersion="8" Name="BuffMaster" Description="Replacement, configurable buff bars" Version="0.1">
+<Addon Author="Caedo" APIVersion="8" Name="BuffMaster" Description="Replacement, configurable buff bars" Version="0.2.0">
     <Script Name="ColorPicker.lua"/>
     <Script Name="DisplayBar.lua"/>
     <Script Name="DisplayBlock.lua"/>

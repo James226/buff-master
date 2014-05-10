@@ -50,16 +50,41 @@ function BuffMaster:OnDocLoaded()
 	    self.wndMain:Show(false, true)
 
 	    self.buffs = BuffMasterLibs.DisplayBlock.new(self.xmlDoc)
-	    self.buffs:SetName("Buffs")
+	    self.buffs:SetName("Player Buffs")
 	    self.buffs:SetPosition(0.3, 0.5)
+	    self.buffs:AnchorFromTop(true)
 
 	    self.debuffs = BuffMasterLibs.DisplayBlock.new(self.xmlDoc)
-	    self.debuffs:SetName("Debuffs")
+	    self.debuffs:SetName("Player Debuffs")
 	    self.debuffs:SetPosition(0.7, 0.5)
+	    self.debuffs:AnchorFromTop(true)
+
+	    self.targetBuffs = BuffMasterLibs.DisplayBlock.new(self.xmlDoc)
+	    self.targetBuffs:SetName("Target Buffs")
+	    self.targetBuffs:SetPosition(0.3, 0.4)
+	    self.targetBuffs:AnchorFromTop(false)
+
+	    self.targetDebuffs = BuffMasterLibs.DisplayBlock.new(self.xmlDoc)
+	    self.targetDebuffs:SetName("Target Debuffs")
+	    self.targetDebuffs:SetPosition(0.7, 0.4)
+	    self.targetDebuffs:AnchorFromTop(false)
+
+	    self.focusBuffs = BuffMasterLibs.DisplayBlock.new(self.xmlDoc)
+	    self.focusBuffs:SetName("Focus Buffs")
+	    self.focusBuffs:SetPosition(0.1, 0.5)
+	    self.focusBuffs:AnchorFromTop(true)
+	    self.focusBuffs:SetEnabled(false)
+
+	    self.focusDebuffs = BuffMasterLibs.DisplayBlock.new(self.xmlDoc)
+	    self.focusDebuffs:SetName("Focus Debuffs")
+	    self.focusDebuffs:SetPosition(0.1, 0.4)
+	    self.focusDebuffs:AnchorFromTop(false)
+	    self.focusDebuffs:SetEnabled(false)
 
 	    self.cooldowns = BuffMasterLibs.DisplayBlock.new(self.xmlDoc)
 	    self.cooldowns:SetName("Cooldowns")
 	    self.cooldowns:SetPosition(0.5, 0.4)
+	    self.cooldowns:AnchorFromTop(false)
 
 	    if self.saveData ~= nil then
 	    	self:LoadSaveData(self.saveData)
@@ -71,6 +96,8 @@ function BuffMaster:OnDocLoaded()
 		Apollo.RegisterSlashCommand("bm", "OnBuffMasterOn", self)
 
 		self:InitializeConfigForm()
+
+		self.Loaded = true
 	end
 end
 
@@ -80,14 +107,34 @@ function BuffMaster:InitializeConfigForm()
 
 	local buffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
 	buffOptions:SetData(self.buffs)
-	buffOptions:FindChild("OptionsLabel"):SetText("Buff Bar Options")
+	buffOptions:FindChild("OptionsLabel"):SetText("Player Buff Bar Options")
 	self:InitializeGroup(buffOptions, self.buffs)
 	
 
 	local debuffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
 	debuffOptions:SetData(self.debuffs)
-	debuffOptions:FindChild("OptionsLabel"):SetText("Debuff Bar Options")
+	debuffOptions:FindChild("OptionsLabel"):SetText("Player Debuff Bar Options")
 	self:InitializeGroup(debuffOptions, self.debuffs)
+
+	local targetBuffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
+	targetBuffOptions:SetData(self.targetBuffs)
+	targetBuffOptions:FindChild("OptionsLabel"):SetText("Target Buff Bar Options")
+	self:InitializeGroup(targetBuffOptions, self.targetBuffs)
+
+	local targetDebuffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
+	targetDebuffOptions:SetData(self.targetDebuffs)
+	targetDebuffOptions:FindChild("OptionsLabel"):SetText("Target Debuff Bar Options")
+	self:InitializeGroup(targetDebuffOptions, self.targetDebuffs)
+
+	local focusBuffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
+	focusBuffOptions:SetData(self.focusBuffs)
+	focusBuffOptions:FindChild("OptionsLabel"):SetText("Focus Buff Bar Options")
+	self:InitializeGroup(focusBuffOptions, self.focusBuffs)
+
+	local focusDebuffOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
+	focusDebuffOptions:SetData(self.focusDebuffs)
+	focusDebuffOptions:FindChild("OptionsLabel"):SetText("Focus Debuff Bar Options")
+	self:InitializeGroup(focusDebuffOptions, self.focusDebuffs)
 
 	local cooldownOptions = Apollo.LoadForm(self.xmlDoc, "SubForms.GroupOptions", groupOptionsList, self)
 	cooldownOptions:SetData(self.cooldowns)
@@ -122,7 +169,11 @@ function BuffMaster:OnSave(eLevel)
 	local saveData = { 
 		buffs = self.buffs:GetSaveData(),
 		debuffs = self.debuffs:GetSaveData(),
-		cooldowns = self.cooldowns:GetSaveData()
+		cooldowns = self.cooldowns:GetSaveData(),
+		targetBuffs = self.targetBuffs:GetSaveData(),
+		targetDebuffs = self.targetDebuffs:GetSaveData(),
+		focusBuffs = self.focusBuffs:GetSaveData(),
+		focusDebuffs = self.focusDebuffs:GetSaveData()
 	}
 	
 	return saveData
@@ -153,6 +204,22 @@ function BuffMaster:LoadSaveData(tData)
 	if tData.cooldowns then
 		self.cooldowns:Load(tData.cooldowns)
 	end
+
+	if tData.targetBuffs then
+		self.targetBuffs:Load(tData.targetBuffs)
+	end
+
+	if tData.targetDebuffs then
+		self.targetDebuffs:Load(tData.targetDebuffs)
+	end
+
+	if tData.focusBuffs then
+		self.focusBuffs:Load(tData.focusBuffs)
+	end
+
+	if tData.focusDebuffs then
+		self.focusDebuffs:Load(tData.focusDebuffs)
+	end
 end
 
 function BuffMaster:OnFrame()
@@ -163,6 +230,24 @@ function BuffMaster:OnFrame()
 		self.buffs:ProcessBuffs(player:GetBuffs().arBeneficial)
 		self.debuffs:ProcessBuffs(player:GetBuffs().arHarmful)
 		self.cooldowns:ProcessSpells()
+
+		local focus = player:GetAlternateTarget()
+		if focus then
+			self.focusBuffs:ProcessBuffs(focus:GetBuffs().arBeneficial)
+			self.focusDebuffs:ProcessBuffs(focus:GetBuffs().arHarmful)
+		else
+			self.focusBuffs:ClearAll()
+			self.focusDebuffs:ClearAll()
+		end
+	end
+
+	local target = GameLib.GetTargetUnit()
+	if target then
+		self.targetBuffs:ProcessBuffs(target:GetBuffs().arBeneficial)
+		self.targetDebuffs:ProcessBuffs(target:GetBuffs().arHarmful)
+	else
+		self.targetBuffs:ClearAll()
+		self.targetDebuffs:ClearAll()
 	end
 end
 
@@ -246,11 +331,19 @@ function BuffMaster:OnMoveBars( wndHandler, wndControl, eMouseButton )
 		wndHandler:SetText("Lock Bars")
 		self.buffs:SetMovable(true)
 		self.debuffs:SetMovable(true)
+		self.targetBuffs:SetMovable(true)
+		self.targetDebuffs:SetMovable(true)
+		self.focusBuffs:SetMovable(true)
+		self.focusDebuffs:SetMovable(true)
 		self.cooldowns:SetMovable(true)
 	else
 		wndHandler:SetText("Move Bars")
 		self.buffs:SetMovable(false)
 		self.debuffs:SetMovable(false)
+		self.targetBuffs:SetMovable(false)
+		self.targetDebuffs:SetMovable(false)
+		self.focusBuffs:SetMovable(false)
+		self.focusDebuffs:SetMovable(false)
 		self.cooldowns:SetMovable(false)
 	end
 end

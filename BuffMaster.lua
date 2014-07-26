@@ -140,7 +140,7 @@ function BuffMaster:InitializeConfigForm()
 	cooldownOptions:SetData(self.cooldowns)
 	cooldownOptions:FindChild("OptionsLabel"):SetText("Cooldown Bar Options")
 	self:InitializeGroup(cooldownOptions, self.cooldowns)
-
+	
 	groupOptionsList:ArrangeChildrenVert()
 end
 
@@ -153,6 +153,8 @@ function BuffMaster:InitializeGroup(groupFrame, group)
 	groupFrame:FindChild("BarWidthValue"):SetText(string.format("%.f", group.barSize.Width))
 	groupFrame:FindChild("BarHeight"):SetValue(group.barSize.Height)
 	groupFrame:FindChild("BarHeightValue"):SetText(string.format("%.f", group.barSize.Height))
+	groupFrame:FindChild("IncludeFilter"):SetCheck(group.includeFilter)
+	groupFrame:FindChild("BarDisplay"):SetCheck(group.displayAsBar)
 	local excludedOptions = groupFrame:FindChild("ExcludedOptions")
 	excludedOptions:DestroyChildren()
 	for _, exclusion in pairs(group.Exclusions) do
@@ -249,6 +251,14 @@ function BuffMaster:OnFrame()
 		self.targetBuffs:ClearAll()
 		self.targetDebuffs:ClearAll()
 	end
+
+	self.buffs:ArrangeItems()
+	self.debuffs:ArrangeItems()
+	self.targetBuffs:ArrangeItems()
+	self.targetDebuffs:ArrangeItems()
+	self.focusBuffs:ArrangeItems()
+	self.focusDebuffs:ArrangeItems()
+	self.cooldowns:ArrangeItems()
 end
 
 -----------------------------------------------------------------------------------------------
@@ -273,6 +283,16 @@ end
 function BuffMaster:OnBuffEnabledChanged( wndHandler, wndControl, eMouseButton )
 	local group = wndHandler:GetParent():GetData()
 	group:SetEnabled(wndHandler:IsChecked())
+end
+
+function BuffMaster:OnResetBarPositions( wndHandler, wndControl, eMouseButton )
+	self.buffs:ResetPosition()
+	self.debuffs:ResetPosition()
+	self.targetBuffs:ResetPosition()
+	self.targetDebuffs:ResetPosition()
+	self.focusBuffs:ResetPosition()
+	self.focusDebuffs:ResetPosition()
+	self.cooldowns:ResetPosition()
 end
 
 ---------------------------------------------------------------------------------------------------
@@ -311,7 +331,6 @@ function BuffMaster:EditBuffBackgroundColor( wndHandler, wndControl, eMouseButto
 	local group = wndHandler:GetParent():GetData()
 	local color = group.bgColor
 	self.colorPicker:OpenColorPicker(color, function()
-		test = wndHandler
 		wndHandler:FindChild("Text"):SetTextColor(color)
 		group:SetBGColor(color)
 	end)
@@ -382,6 +401,16 @@ end
 function BuffMaster:OnBuffStartFromTopChanged( wndHandler, wndControl, eMouseButton )
 	local group = wndHandler:GetParent():GetData()
 	group:AnchorFromTop(wndHandler:IsChecked())
+end
+
+function BuffMaster:OnIncludeFilterChanged( wndHandler, wndControl, eMouseButton )
+	local group = wndHandler:GetParent():GetData()
+	group:SetIncludeFilter(wndHandler:IsChecked())
+end
+
+function BuffMaster:OnBarDisplayChanged( wndHandler, wndControl, eMouseButton )
+	local group = wndHandler:GetParent():GetData()
+	group:SetBarDisplay(wndHandler:IsChecked())
 end
 
 -----------------------------------------------------------------------------------------------

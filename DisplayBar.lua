@@ -1,37 +1,52 @@
+local DisplayItem = {}
+
 local DisplayBar = {} 
+setmetatable(DisplayBar, { __index = DisplayItem })
 
-DisplayBar.__index = DisplayBar
-
-setmetatable(DisplayBar, {
-  __call = function (cls, ...)
-    return cls.new(...)
-  end,
-})
+local DisplayIcon = {}
+setmetatable(DisplayIcon, { __index = DisplayItem })
 
 function DisplayBar.new(xmlDoc, spell, id, maxTime, block)
-    local self = setmetatable({}, DisplayBar)
-    self.buff = buff
+    local self = setmetatable({}, { __index = DisplayBar })
+    self.spell = spell
     self.Id = id
     self.isSet = false
     self.MaxTime = maxTime
 
     self.Frame = Apollo.LoadForm(xmlDoc, "BarTemplate", block.buffFrame:FindChild("ItemList"), self)
+    self:Initialise(spell, maxTime)
     self.Frame:FindChild("Text"):SetText(spell:GetName())
-    self.Frame:FindChild("Icon"):SetSprite(spell:GetIcon())
-    self.Frame:FindChild("RemainingOverlay"):SetMax(maxTime)
-    self.Frame:SetSprite("BarTextures_Fire")
-    self.Frame:FindChild("RemainingOverlay"):SetFullSprite("BarTextures_Fire")
+    self.Frame:SetData(spell)
     return self
 end
 
-function DisplayBar:OnGenerateSpellTooltip( wndHandler, wndControl, eToolTipType, x, y )
+function DisplayIcon.new(xmlDoc, spell, id, maxTime, block)
+    local self = setmetatable({}, { __index = DisplayIcon })
+    self.spell = spell
+    self.Id = id
+    self.isSet = false
+    self.MaxTime = maxTime
+
+    self.Frame = Apollo.LoadForm(xmlDoc, "IconTemplate", block.buffFrame:FindChild("ItemList"), self)
+    self:Initialise(spell, maxTime)
+    self.Frame:SetData(spell)
+    return self
+end
+
+function DisplayItem:Initialise(spell, maxTime)
+    self.Frame:FindChild("Icon"):SetSprite(spell:GetIcon())
+    self.Frame:FindChild("RemainingOverlay"):SetMax(maxTime)
+end
+
+function DisplayItem:OnGenerateSpellTooltip( wndHandler, wndControl, eToolTipType, x, y )
     if wndControl == wndHandler then
-        Tooltip.GetSpellTooltipForm(self, wndHandler, GameLib.GetSpell(self.buff.splEffect:GetId()), false)
+        Tooltip.GetSpellTooltipForm(self, wndHandler, GameLib.GetSpell(self.spell:GetId()), false)
     end
 end
 
-function DisplayBar:SetBuff(buff, buffPosition)
+function DisplayItem:SetBuff(buff, buffPosition)
     self.Frame:FindChild("RemainingOverlay"):SetProgress(buff.fTimeRemaining)
+    self.spell = buff.splEffect
     if buff.nCount > 1 then
         self.Frame:FindChild("Text"):SetText(buff.splEffect:GetName() .. " (" .. buff.nCount .. ")")
     else
@@ -45,21 +60,24 @@ function DisplayBar:SetBuff(buff, buffPosition)
     end
 end
 
-function DisplayBar:SetSpell(spell)
-    local remainingCd = spell:GetCooldownRemaining()
-    self.Frame:FindChild("RemainingOverlay"):SetProgress(remainingCd)
-    self.Frame:FindChild("Text"):SetText(spell:GetName())
+function DisplayItem:SetSpell(spell, cooldownRemaining, chargesRemaining)
+    self.Frame:FindChild("RemainingOverlay"):SetProgress(cooldownRemaining)
+    self.spell = spell
+    if chargesRemaining > 0 then
+        self.Frame:FindChild("Text"):SetText(spell:GetName() .. " (" .. chargesRemaining .. ")")
+    else
+        self.Frame:FindChild("Text"):SetText(spell:GetName())
+    end
 
-    if remainingCd ~= 0 then
-        self.Frame:FindChild("Timer"):SetText(string.format("%.1fs", remainingCd))
+    if cooldownRemaining ~= 0 then
+        self.Frame:FindChild("Timer"):SetText(string.format("%.1fs", cooldownRemaining))
     else
         self.Frame:FindChild("Timer"):SetText("")
     end
 end
 
 function DisplayBar:SetHeight(height)
-    local left, top, right, bottom = self.Frame:GetAnchorOffsets()
-    self.Frame:SetAnchorOffsets(left, top, right, top + height)
+    DisplayItem.SetHeight(self, height)
 
     local icon = self.Frame:FindChild("Icon")
     local iconHeight = icon:GetHeight()
@@ -71,11 +89,16 @@ function DisplayBar:SetHeight(height)
     text:SetAnchorOffsets(iconHeight + 9, top, right, bottom)
 end
 
-function DisplayBar:SetBGColor(color)
+function DisplayItem:SetHeight(height)
+    local left, top, right, bottom = self.Frame:GetAnchorOffsets()
+    self.Frame:SetAnchorOffsets(left, top, right, top + height)
+end
+
+function DisplayItem:SetBGColor(color)
     self.Frame:SetBGColor(color)
 end
 
-function DisplayBar:SetBarColor(color)
+function DisplayItem:SetBarColor(color)
     test = self.Frame:FindChild("RemainingOverlay")
     self.Frame:FindChild("RemainingOverlay"):SetBarColor(color)
 end
@@ -84,3 +107,4 @@ if _G["BuffMasterLibs"] == nil then
     _G["BuffMasterLibs"] = { }
 end
 _G["BuffMasterLibs"]["DisplayBar"] = DisplayBar
+_G["BuffMasterLibs"]["DisplayIcon"] = DisplayIcon

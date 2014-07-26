@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Addon Author="Caedo" APIVersion="9" Name="BuffMaster" Description="Track buffs, debuffs and cooldowns.">
+    <Script Name="Libs/LibAssert/LibAssert-1.0.lua"/>
+    <Script Name="Libs/LibBusted/LibBusted-2.0.lua"/>
+    <Script Name="BuffMaster.lua"/>
+    <Test Name="BuffMasterTests" File="Tests/BuffMasterTests.lua"/>
+</Addon>

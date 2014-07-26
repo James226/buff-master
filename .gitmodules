@@ -1,0 +1,15 @@
+[submodule "BuffMaster/Libs/GeminiGUI"]
+	path = BuffMaster/Libs/GeminiGUI
+	url = https://github.com/wildstarnasa/GeminiGUI.git
+[submodule "BuffMaster/Libs/GeminiDB"]
+	path = BuffMaster/Libs/GeminiDB
+	url = https://github.com/wildstarnasa/GeminiDB.git
+[submodule "BuffMaster/Libs/LibBusted"]
+	path = BuffMaster/Libs/LibBusted
+	url = https://github.com/wildstarnasa/LibBusted.git
+[submodule "BuffMaster/Libs/GeminiColor"]
+	path = BuffMaster/Libs/GeminiColor
+	url = https://github.com/wildstarnasa/GeminiColor.git
+[submodule "BuffMaster/Libs/LibAssert"]
+	path = BuffMaster/Libs/LibAssert
+	url = https://github.com/wildstarnasa/LibAssert.git

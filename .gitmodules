@@ -13,3 +13,6 @@
 [submodule "BuffMaster/Libs/LibAssert"]
 	path = BuffMaster/Libs/LibAssert
 	url = https://github.com/wildstarnasa/LibAssert.git
+[submodule "BuffMaster/Libs/LibError"]
+	path = BuffMaster/Libs/LibError
+	url = https://github.com/wildstarnasa/LibError.git

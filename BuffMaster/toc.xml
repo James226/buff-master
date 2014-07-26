@@ -2,6 +2,16 @@
 <Addon Author="Caedo" APIVersion="9" Name="BuffMaster" Description="Track buffs, debuffs and cooldowns.">
     <Script Name="Libs/LibAssert/LibAssert-1.0.lua"/>
     <Script Name="Libs/LibBusted/LibBusted-2.0.lua"/>
+    <Script Name="Libs/GeminiDB/GeminiDB-1.0.lua"/>
+    <Script Name="Libs/LibError/LibError-1.0.lua"/>
+    <Script Name="Libs/GeminiGUI/GeminiGUI.lua"/>
+
+    <Script Name="BuffMasterNamespace.lua"/>
+
+    <Script Name="Adapters/ConfigWindowAdapter.lua"/>
+
+    <Script Name="Views/ConfigWindow.lua"/>
+
     <Script Name="BuffMaster.lua"/>
     <Test Name="BuffMasterTests" File="Tests/BuffMasterTests.lua"/>
 </Addon>

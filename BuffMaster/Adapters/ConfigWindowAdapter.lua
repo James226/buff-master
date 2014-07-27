@@ -1,17 +1,16 @@
 local ConfigWindowAdapter = {}
 
-function ConfigWindowAdapter.new(view)
+function ConfigWindowAdapter.new(viewPrototype)
 	local self = setmetatable({}, { __index = ConfigWindowAdapter })
 
-	view:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "OnClose", self)
+	self.view = viewPrototype:GetInstance(self)
+	self.view:FindChild("CloseButton"):AddEventHandler("ButtonSignal", "Close")
 
-	self.view = view
 	return self
 end
 
-function ConfigWindowAdapter:OnClose()
-	Print("Close")
-	self.view.Show(false)
+function ConfigWindowAdapter:Close()
+	self.view:Show(false)
 end
 
 function ConfigWindowAdapter:SetStatus(message)

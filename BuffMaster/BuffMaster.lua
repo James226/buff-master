@@ -33,8 +33,7 @@ function BuffMaster:OnLoad()
 	self.configWindow = 
 		_G.BuffMaster.Adapters.ConfigWindow.new(
 			self.ui
-				:Create(_G.BuffMaster.Views.ConfigWindow)
-				:GetInstance())
+				:Create(_G.BuffMaster.Views.ConfigWindow))
 
 	Apollo.FindWindowByName("BuffMasterConfig"):AddEventHandler("MouseButtonDown", "OnClick", self)
 

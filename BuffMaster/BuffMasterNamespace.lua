@@ -1,4 +1,11 @@
 _G.BuffMaster = {
-	Adapters = {},
-	Views = {}
+	Adapters = {
+		Main = {},  
+	},
+	Models = {
+		Main = {},
+	},
+	Views = {
+		Main = {},
+	},
 }

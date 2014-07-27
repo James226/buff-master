@@ -32,24 +32,17 @@ function BuffMaster:OnLoad()
 
 	self.configWindow = 
 		_G.BuffMaster.Adapters.ConfigWindow.new(
-			self.ui
-				:Create(_G.BuffMaster.Views.ConfigWindow))
-
-	Apollo.FindWindowByName("BuffMasterConfig"):AddEventHandler("MouseButtonDown", "OnClick", self)
+			self.ui:Create(_G.BuffMaster.Views.ConfigWindow))
 
 	Apollo.RegisterSlashCommand("bm", "OnCommand", self)
-end
-
-function BuffMaster:OnClick()
-	Print("Close Me!")
 end
 
 function BuffMaster:OnCommand(command, args)
 	if args == "runtests" then
 		self.tests:RunTests()
 	end
+	local status = self.configWindow.Status
 	self.configWindow:SetStatus("Status Test!!")
-	Apollo.FindWindowByName("BuffMasterConfig"):AddEventHandler("MouseButtonDown", "OnClick", self)
 end
 
 function BuffMaster:OnConfigure()

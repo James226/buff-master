@@ -9,9 +9,18 @@
     <Script Name="BuffMasterNamespace.lua"/>
 
     <Script Name="Adapters/ConfigWindowAdapter.lua"/>
+    <Script Name="Adapters/Main/DisplayGroupAdapter.lua"/>
+
+    <Script Name="Models/Main/ItemGroupModel.lua"/>
 
     <Script Name="Views/ConfigWindow.lua"/>
+    <Script Name="Views/Main/DisplayGroup.lua"/>
+    <Script Name="Views/Main/DisplayIcon.lua"/>
 
     <Script Name="BuffMaster.lua"/>
     <Test Name="BuffMasterTests" File="Tests/BuffMasterTests.lua"/>
+
+    <Test Name="Adapters.Main.DisplayGroup" File="Tests/Adapters/DisplayGroupTests.lua"/>
+
+    <Test Name="Models.Main.ItemGroupModel" File="Tests/Models/Main/ItemGroupModelTests.lua"/>
 </Addon>
